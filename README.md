@@ -86,9 +86,9 @@ All sliders must be initialized on page load using:
 | `height` | string | '450px' | Custom height for responsive mode |
 | `infinite` | boolean | false | Enable infinite loop effect |
 | `autoPlay` | boolean | false | Enable automatic slide progression |
+| `hoverPause` | boolean | false | Pause auto-play on hover |
 | `interval` | number | 5 | Time between slides in milliseconds |
 | `transitionSpeed` | number | 0.5 | Animation transition time in seconds |
-| `hoverPause` | boolean | false | Pause auto-play on hover |
 
 Note: If both HTML data attributes and JavaScript options are provided, the JavaScript configuration takes precedence.
 
