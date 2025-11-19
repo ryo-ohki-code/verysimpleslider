@@ -7,38 +7,72 @@ class Slider {
 		this.slider = this.container.querySelector('.slider');
 		this.slides = this.container.querySelectorAll('.slide');
 
+		// Diaporama setting
+		this.IsDiaporama = options.diaporama === true;
+		if (this.IsDiaporama) {
+			this.container = document.getElementById(containerId);
+
+			// Remove all slider-nav elements
+			this.container.querySelectorAll('.slider-nav').forEach(element => {
+				element.remove();
+			});
+		}
+
+		// Navigation buttons
 		this.prevBtn = this.container.querySelector('.prev');
 		this.nextBtn = this.container.querySelector('.next');
-
-		this.indicatorsContainer = this.container.querySelector('.slide-indicators');
-		this.isIndicator = !!this.indicatorsContainer;
 		this.isDirectionBtn = !!this.prevBtn && !!this.nextBtn;
 
+		// Position indicator
+		this.indicatorsContainer = this.container.querySelector('.slide-indicators');
+		this.isIndicator = !!this.indicatorsContainer;
+		this.maxIndicators = 12; // Maximum dot indicator, if more will display slide number
+		
+		// Mode setting
 		this.mode = options.mode || this.container.dataset.mode || 'responsive';
+
 		if (!['responsive', 'fullscreen'].includes(this.mode)) {
 			console.log("Invalid mode, using default mode");
 			this.mode = 'responsive';
 		}
 
+		// Customization options
 		this.customWidth = this.validateWidth(options.width || this.container.dataset.width || '100%');
 		this.customHeight = this.validateHeight(options.height || this.container.dataset.height || '450px');
 
-		this.isInfinite = options.infinite || this.container.querySelector('.infinite-loop') !== null;
-		this.isAutoPlay = options.autoPlay || this.container.querySelector('.auto-play') !== null;
-		this.ishoverPause = options.hoverPause || this.container.querySelector('.hover-pause') !== null;
+		this.isInfinite = options.infinite === true || this.container.querySelector('.infinite-loop') !== null;
+		this.isAutoPlay = options.autoPlay === true || this.container.querySelector('.auto-play') !== null;
+		this.ishoverPause = options.hoverPause === true || this.container.querySelector('.hover-pause') !== null;
 
 		this.sliderSpeed = Number(options.interval) * 1000 || 5000;
+
 		if (isNaN(this.sliderSpeed) || this.sliderSpeed < 0 || this.sliderSpeed > 100000) {
 			console.log("Invalid interval, using default interval");
 			this.sliderSpeed = 5000;
 		}
 
 		this.transitionSpeed = Number(options.transitionSpeed) || 0.5;
+
 		if (isNaN(this.transitionSpeed) || this.transitionSpeed < 0 || this.transitionSpeed > 100) {
 			console.log("Invalid transition interval, using default transition interval");
 			this.transitionSpeed = 0.5;
 		}
 
+
+		this.transitionStyle = `transform ${this.transitionSpeed}s ease-in-out`; // Default slider transform transition
+
+		this.fadeInTransition = options.transitionEffect || null;
+		if (!['fade-in'].includes(this.fadeInTransition)) {
+			// console.log("Using default transition mode: Slide");
+			this.fadeInTransition = null;
+		} else {
+			this.transitionStyle = `transform 0s ease-in-out, opacity ${this.transitionSpeed}s ease-in-out`; // Fade-in opacity transition
+			this.isInfinite = false; // Infinite scroll is useless with fade-in mode
+		}
+
+
+
+		// Slider variables
 		this.currentIndex = 0;
 		this.totalSlides = this.slides.length;
 		this.realSlidesCount = this.totalSlides;
@@ -53,6 +87,7 @@ class Slider {
 			}
 		});
 
+		// Touchscreen swipe
 		this.touchStartX = 0;
 		this.touchEndX = 0;
 		// this.touchStartTime = 0;
@@ -78,12 +113,12 @@ class Slider {
 		this.slider.style.transition = 'none'; // Display without transition at load
 		this.updateSlider();
 
-		if (this.isAutoPlay) {
+		if (this.isAutoPlay || this.IsDiaporama) {
 			this.startAutoPlay();
 		}
 
 		setTimeout(() => {
-			this.slider.style.transition = `transform ${this.transitionSpeed}s ease-in-out`; // Activate transition
+			this.slider.style.transition = this.transitionStyle; // Activate transition for Slide or Fade-in
 		}, 200);
 
 	}
@@ -195,7 +230,7 @@ class Slider {
 
 		this.slides.forEach(slide => {
 
-			const overlay = slide.querySelector('.overlay');
+			const overlay = slide.querySelector('.slide-overlay');
 			if (overlay) slide.style.position = 'relative'; // Ensure overlay positioning works
 
 			const img = slide.querySelector('img');
@@ -230,16 +265,25 @@ class Slider {
 
 	// Create navigation indicators (dots) for slide navigation
 	createIndicators() {
-		if (this.isIndicator) {
+		if (this.isIndicator && !this.IsDiaporama) {
 			this.indicatorsContainer.innerHTML = ''; // Clear existing indicators
-			for (let i = 0; i < this.totalSlides; i++) {
-				const indicator = document.createElement('div');
-				indicator.classList.add('indicator');
+			if (this.totalSlides < this.maxIndicators) {
+				for (let i = 0; i < this.totalSlides; i++) {
+					const indicator = document.createElement('div');
+					indicator.classList.add('indicator');
 
-				if (i === 0) indicator.classList.add('active'); // Mark the first indicator as active
+					if (i === 0) indicator.classList.add('active'); // Mark the first indicator as active
 
-				indicator.addEventListener('click', () => this.goToSlide(i)); // Add click event listener to navigate to specific slide
-				this.indicatorsContainer.appendChild(indicator);
+					indicator.addEventListener('click', () => this.goToSlide(i)); // Add click event listener to navigate to specific slide
+					this.indicatorsContainer.appendChild(indicator);
+				}
+
+			} else {
+				if(this.isInfinite){
+					this.indicatorsContainer.textContent = this.currentIndex-1;
+				}else{
+					this.indicatorsContainer.textContent = this.currentIndex+1;
+				}
 			}
 		}
 	}
@@ -250,46 +294,45 @@ class Slider {
 			this.prevBtn.addEventListener('click', () => this.prevSlide()); // Previous button clicks go to previous slide
 		}
 
-		if (this.isAutoPlay) {
+		if (this.isAutoPlay || this.IsDiaporama) {
 			if (this.ishoverPause) {
 				this.container.addEventListener('mouseenter', () => this.pauseAutoPlay()); // Pause auto-play when mouse enters container
 				this.container.addEventListener('mouseleave', () => this.startAutoPlay()); // Resume auto-play when mouse leaves container
 			}
 		}
 
-		// Keyboard Arrow control
-		this.container.addEventListener('click', () => {
-			this.container.style.outline = 'none'; // Remove red border on first focus
-			this.container.tabIndex = 0; // Make container focusable (0 means it can receive focus via tab key)
-			this.container.focus(); // Give focus to the container so keyboard events are captured
-		});
+		if (!this.IsDiaporama) {
+			// Keyboard Arrow control
+			this.container.addEventListener('click', () => {
+				this.container.style.outline = 'none'; // Remove red border on first focus
+				this.container.tabIndex = 0; // Make container focusable (0 means it can receive focus via tab key)
+				this.container.focus(); // Give focus to the container so keyboard events are captured
+			});
 
-		document.addEventListener('keydown', (e) => {
-			// console.log(this.container.contains(document.activeElement), e.target === this.container, this.container.contains(e.target), this.container === document.activeElement)
-			if (e.target === this.container || this.container.contains(e.target)) {
-				if (e.key === 'ArrowLeft') this.prevSlide(); // Arrow left advance to prev slide
-				if (e.key === 'ArrowRight') this.nextSlide(); // Arrow right advance to next slide
-			}
-		});
+			document.addEventListener('keydown', (e) => {
+				if (e.target === this.container || this.container.contains(e.target)) {
+					if (e.key === 'ArrowLeft') this.prevSlide(); // Arrow left advance to prev slide
+					if (e.key === 'ArrowRight') this.nextSlide(); // Arrow right advance to next slide
+				}
+			});
 
-		// Touchscreen swipe control
-		document.addEventListener('touchstart', (e) => {
-			// Only handle swipes on the slider container
-			if (e.target === this.container || this.container.contains(e.target)) {
-				this.touchStartX = e.changedTouches[0].screenX;
-				// this.touchStartTime = Date.now();
-			}
-		});
+			// Touchscreen swipe control
+			document.addEventListener('touchstart', (e) => {
+				// Only handle swipes on the slider container
+				if (e.target === this.container || this.container.contains(e.target)) {
+					this.touchStartX = e.changedTouches[0].screenX;
+					// this.touchStartTime = Date.now();
+				}
+			});
 
-		document.addEventListener('touchend', (e) => {
-			// Only handle swipes on the slider container
-			if (e.target === this.container || this.container.contains(e.target)) {
-				this.touchEndX = e.changedTouches[0].screenX;
-				this.handleSwipe();
-			}
-		});
-
-
+			document.addEventListener('touchend', (e) => {
+				// Only handle swipes on the slider container
+				if (e.target === this.container || this.container.contains(e.target)) {
+					this.touchEndX = e.changedTouches[0].screenX;
+					this.handleSwipe();
+				}
+			});
+		}
 	}
 
 	handleSwipe() {
@@ -310,7 +353,8 @@ class Slider {
 		// Ensure slide-text elements are styled properly
 		this.slides.forEach((slide, index) => {
 			const textElement = slide.querySelector('.slide-text');
-			const overlay = slide.querySelector('.overlay');
+			const overlay = slide.querySelector('.slide-overlay');
+
 			if (textElement) {
 				if (textElement.classList.contains('show')) textElement.classList.remove('show');
 
@@ -335,7 +379,6 @@ class Slider {
 						textElement.classList.add('show');
 
 						if (this.currentIndex - 1 === this.totalSlides && index === 0) { // First slide clone
-							console.log('first clone', index, this.currentIndex)
 							textElement.style.transform = `translate(${((index + 2) * 100) + 50}%, -50%)`;
 
 						} else if (this.currentIndex === 0 && index === this.totalSlides - 1) {  // Last slide clone
@@ -347,6 +390,8 @@ class Slider {
 
 					} else { // Without overlay setting
 						textElement.classList.add('show');
+
+
 						textElement.style.transform = `translate(${(this.currentIndex * 100) - 50}%, -50%)`;
 					}
 				}
@@ -357,36 +402,60 @@ class Slider {
 
 		if (this.isIndicator) {
 			const indicators = this.indicatorsContainer.querySelectorAll('.indicator');
-			indicators.forEach((indicator, index) => {
-				let activeIndex = index;
+			if (this.totalSlides < this.maxIndicators) {
+				indicators.forEach((indicator, index) => {
+					let activeIndex = index;
 
-				if (this.isInfinite) {
-					activeIndex = (this.currentIndex - 1) % this.slides.length;
+					if (this.isInfinite) {
+						activeIndex = (this.currentIndex - 1) % this.slides.length;
+						if (activeIndex === -1) activeIndex = this.slides.length - 1; // Specific position for first slide duplicate
+					} else {
+						activeIndex = (this.currentIndex) % this.slides.length;
+					}
+
+					if (index === activeIndex) {
+						indicator.classList.add('active');
+					} else {
+						indicator.classList.remove('active');
+					}
+				});
+			}else{
+				if(this.isInfinite){
+					let activeIndex = (this.currentIndex - 1) % this.slides.length
 					if (activeIndex === -1) activeIndex = this.slides.length - 1; // Specific position for first slide duplicate
-				} else {
-					activeIndex = (this.currentIndex) % this.slides.length;
+					this.indicatorsContainer.textContent = activeIndex+1;
+				}else{
+					this.indicatorsContainer.textContent = this.currentIndex+1;
 				}
+			}
 
-				if (index === activeIndex) {
-					indicator.classList.add('active');
-				} else {
-					indicator.classList.remove('active');
-				}
-			});
+
+
 		}
 	}
 
 	goToSlide(index) {
-		console.log(index)
 		if (index < 0 || index >= this.totalSlides) return; // Deny out-of-Bounds Access
-		
+
 		if (this.isInfinite) {
 			this.currentIndex = index + 1;
-		} else{
+		} else {
 			this.currentIndex = index;
 		}
-		
-		this.updateSlider();
+
+		this.handleTransition();
+	}
+
+	handleTransition() {
+		if (this.fadeInTransition) {
+			this.slider.classList.add('inactive-slide');
+			setTimeout(() => {
+				this.slider.classList.remove('inactive-slide');
+				this.updateSlider();
+			}, this.transitionSpeed * 1000);
+		} else {
+			this.updateSlider();
+		}
 	}
 
 	// Navigate to the next slide
@@ -396,26 +465,33 @@ class Slider {
 
 		if (this.isInfinite) { // Infinite loop setting
 			this.currentIndex++;
+
 			if (this.currentIndex > this.realSlidesCount - 1) { // If reached the end of duplicated slides
 				this.currentIndex = 1; // Jump back to the first duplicated slide (which is the original last slide)
 				this.slider.style.transition = 'none'; // Temporarily remove transition
-				this.updateSlider();
+				this.handleTransition();
 				setTimeout(() => {
-					this.slider.style.transition = 'transform ' + this.transitionSpeed + 's ease-in-out'; // Restore transition
+					// Restore transition
+					this.slider.style.transition = this.transitionStyle;
 					this.currentIndex = 2; // Set to second slide (which is the original first slide after duplication)
-					this.updateSlider();
+					this.handleTransition();
 				}, 10);
 			} else {
-				this.updateSlider();
+				this.handleTransition();
 			}
 		} else { // Rewind setting - loop back to first slide after last
 			this.currentIndex = (this.currentIndex + 1) % this.totalSlides;
-			this.updateSlider();
+			this.handleTransition();
 		}
 
 		// Unlock slide navigation after transition completes
 		setTimeout(() => {
 			this.isSliding = false;
+
+			// Prevent slide just after pression navigation button
+			if (this.isAutoPlay) {
+				this.startAutoPlay();
+			}
 		}, this.transitionSpeed * 1000);
 	}
 
@@ -429,21 +505,25 @@ class Slider {
 			if (this.currentIndex < 0) {
 				this.currentIndex = this.totalSlides;
 				this.slider.style.transition = 'none';
-				this.updateSlider();
+				this.handleTransition();
 				setTimeout(() => {
-					this.slider.style.transition = 'transform ' + this.transitionSpeed + 's ease-in-out';
+					this.slider.style.transition = this.transitionStyle;
 					this.currentIndex = this.totalSlides - 1;
-					this.updateSlider();
+					this.handleTransition();
 				}, 50);
 			} else {
-				this.updateSlider();
+				this.handleTransition();
 			}
 		} else {
 			this.currentIndex = (this.currentIndex - 1 + this.totalSlides) % this.totalSlides;
-			this.updateSlider();
+			this.handleTransition();
 		}
 		setTimeout(() => {
 			this.isSliding = false;
+
+			if (this.isAutoPlay) {
+				this.startAutoPlay();
+			}
 		}, this.transitionSpeed * 1000);
 	}
 
