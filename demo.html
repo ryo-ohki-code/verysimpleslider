@@ -18,17 +18,17 @@
 	<div id="slider1" class="slider-container">
 		<div class="slider">
 			<div class="slide">
-				<div class="overlay"></div>
+				<div class="slide-overlay"></div>
 				<div class="slide-text">Welcome to Slide 1</div>
 				<img src="https://cdn.pixabay.com/photo/2025/10/19/14/40/africa-9904004_960_720.jpg" alt="image1">
 			</div>
 			<div class="slide">
-				<div class="overlay"></div>
+				<div class="slide-overlay"></div>
 				<div class="slide-text">Welcome to Slide 2</div>
 				<img src="https://cdn.pixabay.com/photo/2025/10/23/17/29/autumn-9912491_960_720.jpg" alt="image2">
 			</div>
 			<div class="slide">
-				<div class="overlay"></div>
+				<div class="slide-overlay"></div>
 				<div class="slide-text">Welcome to Slide 3</div>
 				<img src="https://cdn.pixabay.com/photo/2025/11/03/16/30/planet-9934703_960_720.jpg" alt="image3">
 			</div>
@@ -41,8 +41,8 @@
 	</div>
 
 	<h2>Slider 1</h2>
-	<p>Javascript settings</p>
 	<p>Mode Fullscreen</p>
+	<p>Javascript settings</p>
 	<p>With navigation and indicator</p>
 	<p>Overlay on all slide</p>
 	<p>Speed 3s</p>
@@ -79,8 +79,8 @@
 	</div>
 
 	<h2>Slider 2</h2>
-	<p>HTML settings</p>
 	<p>Mode Responsive</p>
+	<p>HTML settings</p>
 	<p>Without navigation, with indicator</p>
 	<p>No overlay</p>
 	<p>TransitionSpeed default</p>
@@ -96,7 +96,7 @@
 	<div id="slider3" class="slider-container" data-mode="responsive">
 		<div class="slider auto-play">
 			<div class="slide">
-				<div class="overlay"></div>
+				<div class="slide-overlay"></div>
 				<img src="https://cdn.pixabay.com/photo/2025/10/19/14/40/africa-9904004_960_720.jpg" alt="image1">
 			</div>
 			<div class="slide">
@@ -104,7 +104,7 @@
 				<img src="https://cdn.pixabay.com/photo/2025/10/23/17/29/autumn-9912491_960_720.jpg" alt="image2">
 			</div>
 			<div class="slide">
-				<div class="overlay"></div>
+				<div class="slide-overlay"></div>
 				<img src="https://cdn.pixabay.com/photo/2025/11/03/16/30/planet-9934703_960_720.jpg" alt="image3">
 			</div>
 		</div>
@@ -114,8 +114,8 @@
 	</div>
 
 	<h2>Slider 3</h2>
-	<p>Mixed HTML & Javascript settings</p>
 	<p>Mode Responsive (HTML) - Size (Javascript)</p>
+	<p>Mixed HTML & Javascript settings</p>
 	<p>With navigation, without indicator</p>
 	<p>Overlay on slide 1 and 3</p>
 	<p>TransitionSpeed 2s (Javascript)</p>
@@ -123,6 +123,39 @@
 	<p>Infinite false (Javascript)</p>
 	<p>AutoPlay true (HTML)</p>
 	<p>Without text overlay</p>
+
+
+	<br>
+	<hr>
+	<br>
+
+	<div id="slider4" class="slider-container">
+		<div class="slider">
+			<div class="slide">
+				<div class="slide-overlay"></div>
+				<img src="https://cdn.pixabay.com/photo/2025/10/19/14/40/africa-9904004_960_720.jpg" alt="image1">
+			</div>
+			<div class="slide">
+				<!-- No overlay -->
+				<img src="https://cdn.pixabay.com/photo/2025/10/23/17/29/autumn-9912491_960_720.jpg" alt="image2">
+			</div>
+			<div class="slide">
+				<!-- No overlay -->
+				<img src="https://cdn.pixabay.com/photo/2025/11/03/16/30/planet-9934703_960_720.jpg" alt="image3">
+			</div>
+		</div>
+	</div>
+
+	<h2>Slider 4 - Diporama mode</h2>
+	<p>Mode Responsive + Diaporama (Auto-play enabled, navigatiopn disabled)</p>
+	<p>Javascript settings</p>
+	<p>Overlay on slide 1 </p>
+	<p>transitionEffect fade-in</p>
+	<p>TransitionSpeed 1s</p>
+	<p>Speed 4s</p>
+	<p>Infinite true</p>
+	<p>Without text overlay</p>
+
 
 
 	<script src="verySimpleSlider.js"></script>
@@ -133,21 +166,35 @@
 			infinite: true,
 			autoPlay: true,
 			hoverPause: true,
+			// transitionEffect: 'fade-in',
 			interval: 3,
-			transitionSpeed: 1
+			transitionSpeed: 0.5
 		});
 
 		// Full HTML setting
 		new Slider('slider2');
 
-		// Mixed setting
+		// // Mixed setting
 		new Slider('slider3', {
 			width: '50%',
 			height: '600px',
-			infinite: false,
 			interval: 5,
-			transitionSpeed: 2
+			transitionEffect: 'fade-in',
+			transitionSpeed: 0.7
 		});
+
+		// // Diaporama setting
+		new Slider('slider4', {
+			mode: 'responsive',
+			width: '50%',
+			height: '600px',
+			diaporama: true,
+			infinite: true,
+			hoverPause: true,
+			interval: 4,
+			transitionSpeed: 1
+		});
+
 	</script>
 </body>
 
